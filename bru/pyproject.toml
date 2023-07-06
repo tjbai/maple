@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "bru"
+version = "0.1.0"
+description = ""
+authors = ["TJ Bai <tjianbai@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pypdf2 = "^3.0.1"
+sentence-transformers = "^2.2.2"
+numpy = "^1.25.0"
+tiktoken = "^0.4.0"
+langchain = "^0.0.224"
+tqdm = "^4.65.0"
+openai = "^0.27.8"
+pinecone-client = {extras = ["grpc"], version = "^2.2.2"}
+uuid = "^1.30"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
