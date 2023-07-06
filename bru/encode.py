@@ -1,15 +1,17 @@
-import PyPDF2 as pdf
-from typing import List
-import numpy as np
-import tiktoken
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
 import os
-from tqdm import tqdm
 import pickle
-import pinecone
-from uuid import uuid4
 from datetime import datetime
+from typing import List
+from uuid import uuid4
+
+import numpy as np
+import pinecone
+import PyPDF2 as pdf
+import tiktoken
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from query import OpenAIConfig, PineconeConfig, QueryBuilder
+from tqdm import tqdm
 
 tiktoken.encoding_for_model("gpt-3.5-turbo")
 
@@ -81,8 +83,10 @@ def push_to_pinecone(
     index = pinecone.Index(INDEX_NAME)  # use GRPCIndex for multi-pod setups
     print(f"\n>>> obtained index {datetime.now()}")
 
+    index.delete(deleteAll="true", namespace="")  # clear for re-upsert
+
     ids = [str(uuid4()) for _ in range(len(embeddings))]
-    metadatas = [{"index": i, "chunk": chunk} for i, chunk in enumerate(chunks)]
+    metadatas = [{"chunk": i, "text": chunk} for i, chunk in enumerate(chunks)]
     vectors = [
         (id, embedding, metadata)
         for id, embedding, metadata in zip(ids, embeddings, metadatas)
@@ -94,6 +98,21 @@ def push_to_pinecone(
 
 
 if __name__ == "__main__":
-    chunks = read_pdf("../data/prob.pdf")
-    # embds = compute_embeddings(chunks, pickle_path="../data/pickles/prob.pkl")
-    push_to_pinecone(chunks, pickle_path="../data/pickles/prob.pkl")
+    pc_config = PineconeConfig("prob", PINECONE_API_KEY, PINECONE_ENV)
+    oai_config = OpenAIConfig(OPENAI_API_KEY, MODEL)
+    builder = QueryBuilder(pc_config, oai_config)
+
+    """
+    history = []
+    question = input(">>>> ")
+    while 1:
+        result, answer = builder.query(
+            question,
+            chat_history=history,
+        )
+        print(answer)
+        history.append((result, answer))
+        question = input("\n>>>> ")
+    """
+
+    print(builder.query("what is chebyshev's inequality"))
