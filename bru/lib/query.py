@@ -8,8 +8,9 @@ from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores import Pinecone
-from models import OpenAIConfig, PineconeConfig
-from system import map_template, reduce_template
+
+from .models import OpenAIConfig, PineconeConfig
+from .system import map_template, reduce_template
 
 
 class QueryBuilder:
@@ -23,6 +24,7 @@ class QueryBuilder:
             OpenAIEmbeddings(
                 model=oai_config.embedding_model, openai_api_key=oai_config.api_key
             ),
+            namespace=pc_config.namespace,
         )
 
         """
