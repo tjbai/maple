@@ -10,7 +10,8 @@ import PyPDF2 as pdf
 import tiktoken
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from query import OpenAIConfig, PineconeConfig, QueryBuilder
+from models import OpenAIConfig, PineconeConfig
+from query import QueryBuilder
 from tqdm import tqdm
 
 tiktoken.encoding_for_model("gpt-3.5-turbo")
@@ -32,6 +33,7 @@ def token_length(chunk: str) -> int:
 def read_pdf(path: str) -> List[str]:
     file = open(path, "rb")
     pdfReader = pdf.PdfReader(file)
+    file.close()
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=400,
@@ -86,7 +88,10 @@ def push_to_pinecone(
     index.delete(deleteAll="true", namespace="")  # clear for re-upsert
 
     ids = [str(uuid4()) for _ in range(len(embeddings))]
-    metadatas = [{"chunk": i, "text": chunk} for i, chunk in enumerate(chunks)]
+    metadatas = [
+        {"chunk": i, "text": chunk, "token_length": token_length(chunk)}
+        for i, chunk in enumerate(chunks)
+    ]
     vectors = [
         (id, embedding, metadata)
         for id, embedding, metadata in zip(ids, embeddings, metadatas)
@@ -99,7 +104,7 @@ def push_to_pinecone(
 
 if __name__ == "__main__":
     pc_config = PineconeConfig("prob", PINECONE_API_KEY, PINECONE_ENV)
-    oai_config = OpenAIConfig(OPENAI_API_KEY, MODEL)
+    oai_config = OpenAIConfig(OPENAI_API_KEY)
     builder = QueryBuilder(pc_config, oai_config)
 
     """
@@ -115,4 +120,8 @@ if __name__ == "__main__":
         question = input("\n>>>> ")
     """
 
+    """
+    chunks = read_pdf("../data/prob.pdf")
     print(builder.query("what is chebyshev's inequality"))
+    print(builder.summarize(chunks[100:105]))
+    """

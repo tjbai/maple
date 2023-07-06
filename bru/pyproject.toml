@@ -8,7 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 pypdf2 = "^3.0.1"
-sentence-transformers = "^2.2.2"
 numpy = "^1.25.0"
 tiktoken = "^0.4.0"
 langchain = "^0.0.224"
